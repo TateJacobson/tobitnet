@@ -1,0 +1,15 @@
+Package: tobitnet
+Version: 1.0.0
+Date: 2022-02-18
+Title: Penalized Tobit Regression
+Authors@R: c( person("Tate", "Jacobson", email = "jaco2583@umn.edu", role = c("aut", "cre") ),
+			  person("Hui", "Zou", role = c("ths") ))
+Depends: R (>= 4.0.0)
+LinkingTo: Rcpp
+Suggests: MASS, AER
+Imports: stats, Rcpp
+SystemRequirements: C++14
+Description: High-dimensional censored regression with penalized Tobit models. Fits the Tobit model with a weighted elastic net penalty as well as the Tobit model with the folded concave SCAD penalty.
+License: GPL-2
+URL: https://github.com/TateJacobson/tobitnet
+RoxygenNote: 7.1.1

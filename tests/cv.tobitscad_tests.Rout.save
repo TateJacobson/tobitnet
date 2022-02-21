@@ -1,0 +1,256 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #Tests for cv.tobitscad
+> library(tobitnet)
+> 
+> set.seed(2022)
+> n = 100
+> p = 10
+> x = vapply(1:p, function(i) rnorm(n, mean = 1, sd = 1.5), FUN.VALUE = numeric(n) )
+> 
+> y = 3 + x%*%c(5, 1, 2, 0.5, 0.1, rep(0, p - 5)) + rnorm(n,0,1)
+> y = pmax(y, 0)
+> 
+> #Default arguments work
+> tscv1 = cv.tobitscad(x, y)
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 6
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda)
+[1] TRUE
+> all(is.finite(tscv1$lambda))
+[1] TRUE
+> all(tscv1$lambda > 0)
+[1] TRUE
+> length(tscv1$lambda) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works when x is a data frame
+> x.df = data.frame(x)
+> tscv1 = cv.tobitscad(x.df, y)
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 6
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda)
+[1] TRUE
+> all(is.finite(tscv1$lambda))
+[1] TRUE
+> all(tscv1$lambda > 0)
+[1] TRUE
+> length(tscv1$lambda) == 100
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works with user-provided lambda
+> tscv1 = cv.tobitscad(x,y, lambda = c(0.1, 0.2))
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 6
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tscv1$lambda,c(0.1, 0.2))
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works with different c, nfolds
+> y = pmax(y,3)
+> 
+> tscv1 = cv.tobitscad(x, y, c = 3, lambda = c(0.1, 0.2), nfolds = 5)
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 6
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tscv1$lambda,c(0.1, 0.2))
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works with constant column in some folds
+> tscv1 = cv.tobitscad(cbind(c(rep(1, n-1) ,0), x), y, c = 3, lambda = c(0.1, 0.2), nfolds = 5)
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 6
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tscv1$lambda,c(0.1, 0.2))
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  4.622   0.081   4.886 

@@ -1,0 +1,271 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #Tests for the tobitnet function
+> library(AER)
+Loading required package: car
+Loading required package: carData
+Loading required package: lmtest
+Loading required package: zoo
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+Loading required package: sandwich
+Loading required package: survival
+> library(tobitnet)
+> 
+> set.seed(2022)
+> n = 100
+> p = 10
+> x = vapply(1:p, function(i) rnorm(n, mean = 1, sd = 1.5), FUN.VALUE = numeric(n) )
+> y = 3 + x%*%c(5, 1, 2, 0.5, 0.1, rep(0, p - 5)) + rnorm(n,0,1)
+> y = pmax(y, 0)
+> 
+> #Works with user-provided lambda1
+> tnout1 <- tobitnet(x = x, y = y, lambda1 = 0.05)
+> class(tnout1) == "tobitnet"
+[1] TRUE
+> length(tnout1) == 9
+[1] TRUE
+> 
+> is.numeric(tnout1$sigma)
+[1] TRUE
+> is.finite(tnout1$sigma)
+[1] TRUE
+> all(tnout1$sigma > 0)
+[1] TRUE
+> length(tnout1$sigma) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$b0)
+[1] TRUE
+> is.finite(tnout1$b0)
+[1] TRUE
+> length(tnout1$b0) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$beta)
+[1] TRUE
+> all(is.finite(tnout1$beta))
+[1] TRUE
+> ncol(tnout1$beta) == 1
+[1] TRUE
+> nrow(tnout1$beta) == p
+[1] TRUE
+> 
+> tnout1$lambda1 == 0.05
+[1] TRUE
+> tnout1$lambda2 == 0
+[1] TRUE
+> 
+> tnout1$c == 0
+[1] TRUE
+> 
+> #Works when x is a data frame
+> x.df = data.frame(x)
+> tnout1 <- tobitnet(x = x.df, y = y, lambda1 = 0.05)
+> class(tnout1) == "tobitnet"
+[1] TRUE
+> length(tnout1) == 9
+[1] TRUE
+> 
+> is.numeric(tnout1$sigma)
+[1] TRUE
+> is.finite(tnout1$sigma)
+[1] TRUE
+> all(tnout1$sigma > 0)
+[1] TRUE
+> length(tnout1$sigma) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$b0)
+[1] TRUE
+> is.finite(tnout1$b0)
+[1] TRUE
+> length(tnout1$b0) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$beta)
+[1] TRUE
+> all(is.finite(tnout1$beta))
+[1] TRUE
+> ncol(tnout1$beta) == 1
+[1] TRUE
+> nrow(tnout1$beta) == p
+[1] TRUE
+> 
+> tnout1$lambda1 == 0.05
+[1] TRUE
+> tnout1$lambda2 == 0
+[1] TRUE
+> 
+> tnout1$c == 0
+[1] TRUE
+> 
+> #Works with different c, lambda1, lambda2
+> tnout1 <- tobitnet(x = x, y = pmax(y,5), c = 5, lambda1 = 0.1, lambda2 = 0.1)
+> class(tnout1) == "tobitnet"
+[1] TRUE
+> length(tnout1) == 9
+[1] TRUE
+> 
+> is.numeric(tnout1$sigma)
+[1] TRUE
+> is.finite(tnout1$sigma)
+[1] TRUE
+> tnout1$sigma > 0
+[1] TRUE
+> length(tnout1$sigma) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$b0)
+[1] TRUE
+> is.finite(tnout1$b0)
+[1] TRUE
+> length(tnout1$b0) == 1
+[1] TRUE
+> 
+> is.numeric(tnout1$beta)
+[1] TRUE
+> all(is.finite(tnout1$beta))
+[1] TRUE
+> ncol(tnout1$beta) == 1
+[1] TRUE
+> nrow(tnout1$beta) == p
+[1] TRUE
+> 
+> tnout1$lambda1 == 0.1
+[1] TRUE
+> tnout1$lambda2 == 0.1
+[1] TRUE
+> 
+> tnout1$c == 5
+[1] TRUE
+> 
+> #Default arguments work
+> tnout1 <- tobitnet(x = x, y = y)
+> is.numeric(tnout1$sigma)
+[1] TRUE
+> all(is.finite(tnout1$sigma))
+[1] TRUE
+> all(tnout1$sigma > 0)
+[1] TRUE
+> length(tnout1$sigma) == 100
+[1] TRUE
+> 
+> is.numeric(tnout1$b0)
+[1] TRUE
+> all(is.finite(tnout1$b0))
+[1] TRUE
+> length(tnout1$b0) == 100
+[1] TRUE
+> 
+> is.numeric(tnout1$beta)
+[1] TRUE
+> all(is.finite(tnout1$beta))
+[1] TRUE
+> ncol(tnout1$beta) == 100
+[1] TRUE
+> nrow(tnout1$beta) == p
+[1] TRUE
+> 
+> length(tnout1$lambda1) == 100
+[1] TRUE
+> is.numeric(tnout1$lambda1)
+[1] TRUE
+> all(is.finite(tnout1$lambda1))
+[1] TRUE
+> 
+> tnout1$lambda2 == 0
+[1] TRUE
+> 
+> tnout1$c == 0
+[1] TRUE
+> 
+> #Standardize = F does not change estimates when lambda1 = lambda2 = 0
+> tnout1sT <- tobitnet(x = x, y = y, lambda1 = 0, lambda2 = 0, standardize = T, eps = 1e-20)
+> tnout1sF <- tobitnet(x = x, y = y, lambda1 = 0, lambda2 = 0, standardize = F, eps = 1e-20)
+> all.equal(tnout1sT$sigma, tnout1sF$sigma)
+[1] TRUE
+> all.equal(tnout1sT$b0, tnout1sF$b0)
+[1] TRUE
+> all.equal(tnout1sT$beta, tnout1sF$beta)
+[1] TRUE
+> 
+> #Intercept column does not impact model fitting
+> tnout1b <- tobitnet(x = cbind(rep(1,n) ,x), y = y, early.stop = F)
+> all.equal(tnout1$sigma, tnout1b$sigma)
+[1] TRUE
+> all.equal(tnout1$b0, tnout1b$b0)
+[1] TRUE
+> all.equal(tnout1$beta, tnout1b$beta[-1,])
+[1] TRUE
+> all.equal( nrow(tnout1$beta) +1, nrow(tnout1b$beta))
+[1] TRUE
+> all.equal( ncol(tnout1$beta), ncol(tnout1b$beta))
+[1] TRUE
+> 
+> #Checking tobitnet estimates against tobit estimates
+> tnout1 <- tobitnet(x = x, y = y, lambda1 = 0, eps = 1e-20)
+> tob1 <- tobit(y ~ x, left = 0)
+> all.equal(drop(tnout1$beta), as.vector(tob1$coefficients)[-1])
+[1] TRUE
+> all.equal(tnout1$b0, as.vector(tob1$coefficients)[1])
+[1] TRUE
+> all.equal(tob1$scale, tnout1$sigma)
+[1] TRUE
+> 
+> #Check that standardize = F doesn't throw off estimates
+> tnout1 <- tobitnet(x = x, y = y, c = 0, lambda1 = 0, lambda2 = 0, eps = 1e-20, standardize = F)
+> all.equal(drop(tnout1$beta), as.vector(tob1$coefficients)[-1])
+[1] TRUE
+> all.equal(tnout1$b0, as.vector(tob1$coefficients)[1])
+[1] TRUE
+> all.equal(tob1$scale, tnout1$sigma)
+[1] TRUE
+> 
+> #Check that c > 0 doesn't throw off estimates
+> y = pmax(y, 5)
+> tnout1 <- tobitnet(x = x, y = y, c = 5, lambda1 = 0, lambda2 = 0, eps = 1e-20)
+> tob1 <- tobit(y ~ x, left = 5)
+> all.equal(drop(tnout1$beta), as.vector(tob1$coefficients)[-1])
+[1] TRUE
+> all.equal(tnout1$b0, as.vector(tob1$coefficients)[1])
+[1] TRUE
+> all.equal(tob1$scale, tnout1$sigma)
+[1] TRUE
+> 
+> #Compare with a different beta/sigma combination
+> y = x%*%c(3, rep(0,4), 3, rep(0,4)) + rnorm(n,0,10)
+> 
+> y = pmax(y, 0)
+> tnout1 <- tobitnet(x = x, y = y, c = 0, lambda1 = 0, lambda2 = 0, eps = 1e-20)
+> tob1 <- tobit(y ~ x, left = 0)
+> all.equal(drop(tnout1$beta), as.vector(tob1$coefficients)[-1])
+[1] TRUE
+> all.equal(tnout1$b0, as.vector(tob1$coefficients)[1])
+[1] TRUE
+> all.equal(tob1$scale, tnout1$sigma)
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  1.462   0.094   1.838 

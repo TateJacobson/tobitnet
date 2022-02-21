@@ -1,0 +1,238 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #Tests for tobitscad
+> library(tobitnet)
+> 
+> set.seed(2022)
+> n = 100
+> p = 10
+> x = vapply(1:p, function(i) rnorm(n, mean = 1, sd = 1.5), FUN.VALUE = numeric(n) )
+> y = 3 + x%*%c(5, 1, 2, 0.5, 0.1, rep(0, p - 5)) + rnorm(n,0,1)
+> y = pmax(y, 0)
+> 
+> #Works with user-provided lambda1
+> tsout1 <- tobitscad(x = x, y = y, lambda = 0.1)
+> class(tsout1) == "tobitscad"
+[1] TRUE
+> length(tsout1) == 8
+[1] TRUE
+> 
+> is.numeric(tsout1$sigma)
+[1] TRUE
+> is.finite(tsout1$sigma)
+[1] TRUE
+> all(tsout1$sigma > 0)
+[1] TRUE
+> length(tsout1$sigma) == 1
+[1] TRUE
+> 
+> is.numeric(tsout1$b0)
+[1] TRUE
+> is.finite(tsout1$b0)
+[1] TRUE
+> length(tsout1$b0) == 1
+[1] TRUE
+> 
+> is.numeric(tsout1$beta)
+[1] TRUE
+> all(is.finite(tsout1$beta))
+[1] TRUE
+> ncol(tsout1$beta) == 1
+[1] TRUE
+> nrow(tsout1$beta) == p
+[1] TRUE
+> 
+> tsout1$lambda == 0.1
+[1] TRUE
+> 
+> tsout1$c == 0
+[1] TRUE
+> 
+> #Works when x is a data frame
+> x.df = data.frame(x)
+> tsout1 <- tobitscad(x = x.df, y = y, lambda = 0.1)
+> class(tsout1) == "tobitscad"
+[1] TRUE
+> length(tsout1) == 8
+[1] TRUE
+> 
+> is.numeric(tsout1$sigma)
+[1] TRUE
+> is.finite(tsout1$sigma)
+[1] TRUE
+> all(tsout1$sigma > 0)
+[1] TRUE
+> length(tsout1$sigma) == 1
+[1] TRUE
+> 
+> is.numeric(tsout1$b0)
+[1] TRUE
+> is.finite(tsout1$b0)
+[1] TRUE
+> length(tsout1$b0) == 1
+[1] TRUE
+> 
+> is.numeric(tsout1$beta)
+[1] TRUE
+> all(is.finite(tsout1$beta))
+[1] TRUE
+> ncol(tsout1$beta) == 1
+[1] TRUE
+> nrow(tsout1$beta) == p
+[1] TRUE
+> 
+> tsout1$lambda == 0.1
+[1] TRUE
+> 
+> tsout1$c == 0
+[1] TRUE
+> 
+> #Works with different c, lambda, a, iter
+> tsout1 <- tobitscad(x = x, y = pmax(y,5), c = 5, a = 3.7, iter = 4, lambda = c(0.2, 0.3) )
+> class(tsout1) == "tobitscad"
+[1] TRUE
+> length(tsout1) == 8
+[1] TRUE
+> 
+> is.numeric(tsout1$sigma)
+[1] TRUE
+> all(is.finite(tsout1$sigma))
+[1] TRUE
+> all(tsout1$sigma > 0)
+[1] TRUE
+> length(tsout1$sigma) == 2
+[1] TRUE
+> 
+> is.numeric(tsout1$b0)
+[1] TRUE
+> all(is.finite(tsout1$b0))
+[1] TRUE
+> length(tsout1$b0) == 2
+[1] TRUE
+> 
+> is.numeric(tsout1$beta)
+[1] TRUE
+> all(is.finite(tsout1$beta))
+[1] TRUE
+> ncol(tsout1$beta) == 2
+[1] TRUE
+> nrow(tsout1$beta) == p
+[1] TRUE
+> 
+> all.equal(tsout1$lambda, c(0.2, 0.3))
+[1] TRUE
+> 
+> tsout1$c == 5
+[1] TRUE
+> 
+> #Default arguments work
+> tsout1 <- tobitscad(x = x, y = y)
+> is.numeric(tsout1$sigma)
+[1] TRUE
+> all(is.finite(tsout1$sigma))
+[1] TRUE
+> all(tsout1$sigma > 0)
+[1] TRUE
+> length(tsout1$sigma) == 100
+[1] TRUE
+> 
+> is.numeric(tsout1$b0)
+[1] TRUE
+> all(is.finite(tsout1$b0))
+[1] TRUE
+> length(tsout1$b0) == 100
+[1] TRUE
+> 
+> is.numeric(tsout1$beta)
+[1] TRUE
+> all(is.finite(tsout1$beta))
+[1] TRUE
+> ncol(tsout1$beta) == 100
+[1] TRUE
+> nrow(tsout1$beta) == p
+[1] TRUE
+> 
+> length(tsout1$lambda) == 100
+[1] TRUE
+> is.numeric(tsout1$lambda)
+[1] TRUE
+> all(is.finite(tsout1$lambda))
+[1] TRUE
+> 
+> tsout1$c == 0
+[1] TRUE
+> 
+> #Works with standardize
+> tsout1sF <- tobitscad(x = x, y = y, lambda = 0.2, standardize = F)
+> 
+> #Intercept column does not impact model fitting
+> tsout1b <- tobitscad(x = cbind(rep(1,n) ,x), y = y)
+> all.equal(tsout1$sigma, tsout1b$sigma)
+[1] TRUE
+> all.equal(tsout1$b0, tsout1b$b0)
+[1] TRUE
+> all.equal(tsout1$beta, tsout1b$beta[-1,])
+[1] TRUE
+> all.equal( nrow(tsout1$beta) +1, nrow(tsout1b$beta))
+[1] TRUE
+> all.equal( ncol(tsout1$beta), ncol(tsout1b$beta))
+[1] TRUE
+> 
+> #Works with a different beta/sigma combination
+> y = x%*%c(3, rep(0,4), 3, rep(0,4)) + rnorm(n,0,10)
+> 
+> y = pmax(y, 0)
+> tsout1 <- tobitscad(x = x, y = y)
+> is.numeric(tsout1$sigma)
+[1] TRUE
+> all(is.finite(tsout1$sigma))
+[1] TRUE
+> all(tsout1$sigma > 0)
+[1] TRUE
+> length(tsout1$sigma) == 100
+[1] TRUE
+> 
+> is.numeric(tsout1$b0)
+[1] TRUE
+> all(is.finite(tsout1$b0))
+[1] TRUE
+> length(tsout1$b0) == 100
+[1] TRUE
+> 
+> is.numeric(tsout1$beta)
+[1] TRUE
+> all(is.finite(tsout1$beta))
+[1] TRUE
+> ncol(tsout1$beta) == 100
+[1] TRUE
+> nrow(tsout1$beta) == p
+[1] TRUE
+> 
+> length(tsout1$lambda) == 100
+[1] TRUE
+> is.numeric(tsout1$lambda)
+[1] TRUE
+> all(is.finite(tsout1$lambda))
+[1] TRUE
+> 
+> tsout1$c == 0
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  0.744   0.041   0.965 

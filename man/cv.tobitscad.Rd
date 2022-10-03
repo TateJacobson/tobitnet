@@ -7,7 +7,7 @@
 \usage{
 cv.tobitscad(x, y, c = 0, a = 3, iter = 3, nlambda = 100, 
   lambda.factor = ifelse(n/2 < nvars, 0.1, 0.05), lambda = NULL, 
-  nfolds = 10, early.stop = TRUE,...)
+  nfolds = 10, early.stop = TRUE, type.measure = c("mse", "deviance", "mae"),...)
 }
 \arguments{
   \item{x}{numeric predictor matrix with \code{n} rows and \code{nvars} columns, where each row corresponds to an observation and each column corresponds to a predictor}
@@ -20,6 +20,7 @@ cv.tobitscad(x, y, c = 0, a = 3, iter = 3, nlambda = 100,
   \item{lambda}{vector of values for the SCAD penalty parameter \eqn{\lambda}. If this is not provided, then a \eqn{\lambda} path is automatically generated based on the values of \code{nlambda} and \code{lambda.factor}.}
   \item{nfolds}{number of folds. Default is 10.}
   \item{early.stop}{allow \code{tobitscad} to stop early in the \code{lambda} sequence if the decrease in the deviance between \code{lambda} values is negligible. Default is \code{TRUE}.}
+  \item{type.measure}{loss function to use for cross-validation. The default is \code{type.measure = "mse"}. The other two options are \code{type.measure = "deviance"}, the Tobit deviance, and \code{type.measure = "mae"}, the mean absolute error.}
   \item{...}{additional arguments for \code{tobitscad}}
 }
 \value{
@@ -30,6 +31,7 @@ cv.tobitscad(x, y, c = 0, a = 3, iter = 3, nlambda = 100,
  \item{lambda}{user-provided or automatically generated \code{lambda} path}
  \item{lambda.min}{the value of \code{lambda} that gives the minimum \code{cvm}}
  \item{lambda.1se}{the largest value of \code{lambda} such that \code{cvm} is within 1 standard error of the minimum.}
+ \item{type.measure}{user-provided \code{type.measure} argument}
 }
 
 \details{

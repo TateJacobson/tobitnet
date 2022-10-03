@@ -5,7 +5,8 @@ tobitnet = function(x, y, c = 0, nlambda = 100, lambda.factor = ifelse(n/2 < nva
     
     n = nrow(x)
     nvars = ncol(x)
-    
+    varnames = colnames(x)
+      
     #x is numeric, a matrix, and has finite entries
     if( any( c(is.null(nvars), nvars <= 1) ) ) stop("x must be a matrix with 2 or more columns")
     if(!is.matrix(x)) x <- as.matrix(x)
@@ -140,6 +141,7 @@ tobitnet = function(x, y, c = 0, nlambda = 100, lambda.factor = ifelse(n/2 < nva
     #Put in rows of 0s for betas corresponding to the constant columns
     beta_final = matrix(0, nrow = nvars, ncol = nlambda)
     beta_final[!constant_cols, ] = beta_mat[, 1:nlambda, drop = F]
+    rownames(beta_final) = varnames
     
     return(structure( list(
                 call = this.call,
@@ -175,7 +177,7 @@ predict.tobitnet = function(object, newx, lambda1 = NULL, type = c("censored", "
     
     c = object$c
     
-    if(!is.null(lambda1)){ 
+    if(!is.null(lambda1)){
         object = update(object, lambda1 = lambda1, c = c , ...)
     }
 
@@ -189,7 +191,8 @@ predict.tobitnet = function(object, newx, lambda1 = NULL, type = c("censored", "
     return( r )
 }
 
-cv.tobitnet = function(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, ...){
+cv.tobitnet = function(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, type.measure = c("mse", "deviance", "mae"), ...){
+    type.measure = match.arg(type.measure)
     this.call = match.call()
     n = nrow(x)
     p = ncol(x)
@@ -232,14 +235,23 @@ cv.tobitnet = function(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TR
             fold_z = unfolded_entries_z
         }
         foldlist[[i]] = c(fold_nz, fold_z)
+        fold_size = length(foldlist[[i]])
         
         tn = tobitnet(x = x[-foldlist[[i]], ], y = y[-foldlist[[i]] ], c = c, lambda1 = lambda1, early.stop = F, ...)
         
-        #Predict and test
-        preds = predict(tn, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
-        
-        r2 = (matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)^2
-        err_mat[i,] = colMeans(r2) 
+        if(type.measure == "mse"){
+            preds = predict(tn, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
+            r2 = (matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)^2
+            err_mat[i,] = colMeans(r2)
+        } else if(type.measure == "mae"){
+            preds = predict(tn, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
+            r_abs = abs(matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)
+            err_mat[i,] = colMeans(r_abs)
+        } else if(type.measure == "deviance"){
+            delta_pred = tn$beta/rep(tn$sigma, each = nrow(tn$beta))
+            r_temp = as.matrix(x[ foldlist[[i]], ])%*%delta_pred + matrix( rep((tn$b0 - c)/tn$sigma, each = fold_size), nrow = fold_size, ncol = length(tn$sigma))
+            err_mat[i,] = vapply(1:ncol(r_temp), function(j) -2*sum(logL1(y = y[ foldlist[[i]] ]-c, d = (y[ foldlist[[i]] ] > c), r = r_temp[,j], gamma = 1/tn$sigma[j])), numeric(1) ) 
+        }
     }
     
     cvm = colMeans(err_mat) 
@@ -255,13 +267,17 @@ cv.tobitnet = function(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TR
         lambda1 = lambda1,
         lambda2 = tn_init$lambda2,
         lambda1.min = lambda1.min,
-        lambda1.1se = lambda1.1se
+        lambda1.1se = lambda1.1se,
+        type.measure = type.measure
         ), class = "cv.tobitnet"))
 }
 
 plot.cv.tobitnet = function(x, ...){
+    if(x$type.measure == "mse"){ ylabel = "Mean-Squared Error" }
+    else if(x$type.measure == "mae"){ ylabel = "Mean Absolute Error" }
+    else if(x$type.measure == "deviance"){ ylabel = "Deviance" }
     plot(x = log(x$lambda1), y = x$cvm, pch = 21, col = "red", bg = "red",
-         xlab = expression( log(lambda [1]) ), ylab = "Mean-Squared Error", ...)
+         xlab = expression( log(lambda [1]) ), ylab = ylabel, ...)
     arrows(log(x$lambda1), x$cvm-x$cvsd, log(x$lambda1), x$cvm+x$cvsd, 
            length=0.05, angle=90, code=3, col = "gray")
     abline(v = log(x$lambda1.min), lty = "dotted")

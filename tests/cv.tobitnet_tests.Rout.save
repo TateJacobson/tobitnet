@@ -30,7 +30,7 @@ Type 'q()' to quit R.
 > tncv1 = cv.tobitnet(x,y)
 > class(tncv1) == "cv.tobitnet"
 [1] TRUE
-> length(tncv1) == 7
+> length(tncv1) == 8
 [1] TRUE
 > 
 > is.numeric(tncv1$cvm)
@@ -82,7 +82,7 @@ Type 'q()' to quit R.
 > tncv1 = cv.tobitnet(x.df, y)
 > class(tncv1) == "cv.tobitnet"
 [1] TRUE
-> length(tncv1) == 7
+> length(tncv1) == 8
 [1] TRUE
 > 
 > is.numeric(tncv1$cvm)
@@ -133,7 +133,95 @@ Type 'q()' to quit R.
 > tncv1 = cv.tobitnet(x,y, lambda1 = c(0.1, 0.2), lambda2 = 0.1)
 > class(tncv1) == "cv.tobitnet"
 [1] TRUE
-> length(tncv1) == 7
+> length(tncv1) == 8
+[1] TRUE
+> 
+> is.numeric(tncv1$cvm)
+[1] TRUE
+> all(is.finite(tncv1$cvm))
+[1] TRUE
+> length(tncv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tncv1$cvsd)
+[1] TRUE
+> all(is.finite(tncv1$cvsd))
+[1] TRUE
+> length(tncv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tncv1$lambda1,c(0.1, 0.2))
+[1] TRUE
+> tncv1$lambda2 == 0.1
+[1] TRUE
+> 
+> is.numeric(tncv1$lambda1.min)
+[1] TRUE
+> is.finite(tncv1$lambda1.min)
+[1] TRUE
+> tncv1$lambda1.min > 0
+[1] TRUE
+> length(tncv1$lambda1.min) == 1
+[1] TRUE
+> 
+> is.numeric(tncv1$lambda1.1se)
+[1] TRUE
+> is.finite(tncv1$lambda1.1se)
+[1] TRUE
+> tncv1$lambda1.1se > 0
+[1] TRUE
+> length(tncv1$lambda1.1se) == 1
+[1] TRUE
+> 
+> #Works with type.measure = "deviance"
+> tncv1 = cv.tobitnet(x, y, lambda1 = c(0.1, 0.2), lambda2 = 0.1, type.measure = "deviance")
+> class(tncv1) == "cv.tobitnet"
+[1] TRUE
+> length(tncv1) == 8
+[1] TRUE
+> 
+> is.numeric(tncv1$cvm)
+[1] TRUE
+> all(is.finite(tncv1$cvm))
+[1] TRUE
+> length(tncv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tncv1$cvsd)
+[1] TRUE
+> all(is.finite(tncv1$cvsd))
+[1] TRUE
+> length(tncv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tncv1$lambda1,c(0.1, 0.2))
+[1] TRUE
+> tncv1$lambda2 == 0.1
+[1] TRUE
+> 
+> is.numeric(tncv1$lambda1.min)
+[1] TRUE
+> is.finite(tncv1$lambda1.min)
+[1] TRUE
+> tncv1$lambda1.min > 0
+[1] TRUE
+> length(tncv1$lambda1.min) == 1
+[1] TRUE
+> 
+> is.numeric(tncv1$lambda1.1se)
+[1] TRUE
+> is.finite(tncv1$lambda1.1se)
+[1] TRUE
+> tncv1$lambda1.1se > 0
+[1] TRUE
+> length(tncv1$lambda1.1se) == 1
+[1] TRUE
+> 
+> #Works with type.measure = "mae
+> tncv1 = cv.tobitnet(x, y, lambda1 = c(0.1, 0.2), lambda2 = 0.1, type.measure = "mae")
+> class(tncv1) == "cv.tobitnet"
+[1] TRUE
+> length(tncv1) == 8
 [1] TRUE
 > 
 > is.numeric(tncv1$cvm)
@@ -179,7 +267,7 @@ Type 'q()' to quit R.
 > tncv1 = cv.tobitnet(x, y, c = 3, lambda1 = c(0.1, 0.2), lambda2 = 0.1, nfolds = 5)
 > class(tncv1) == "cv.tobitnet"
 [1] TRUE
-> length(tncv1) == 7
+> length(tncv1) == 8
 [1] TRUE
 > 
 > is.numeric(tncv1$cvm)
@@ -223,7 +311,7 @@ Type 'q()' to quit R.
 > tncv1 = cv.tobitnet(cbind(c(rep(1, n-1) ,0), x) , y, c = 3, lambda1 = c(0.1, 0.2), lambda2 = 0.1, nfolds = 5)
 > class(tncv1) == "cv.tobitnet"
 [1] TRUE
-> length(tncv1) == 7
+> length(tncv1) == 8
 [1] TRUE
 > 
 > is.numeric(tncv1$cvm)
@@ -265,4 +353,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  2.676   0.062   2.934 
+  2.794   0.030   3.065 

@@ -5,7 +5,8 @@
   Performs k-fold cross-validation for the \code{lambda1} penalty parameter for \code{tobitnet}.
 }
 \usage{
-cv.tobitnet(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, ...)
+cv.tobitnet(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, 
+  type.measure = c("mse", "deviance", "mae"), ...)
 }
 
 \arguments{
@@ -15,6 +16,7 @@ cv.tobitnet(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, ...)
   \item{lambda1}{vector of values for the lasso penalty parameter \eqn{\lambda_1}{\lambda1}. If this is not provided, then a \eqn{\lambda_1}{\lambda1} path is automatically generated based on the values of \code{nlambda} and \code{lambda.factor}}
   \item{nfolds}{number of folds. Default is 10.}
   \item{early.stop}{allow \code{tobitnet} to stop early in the \code{lambda1} sequence if the decrease in the deviance between \code{lambda1} values is negligible. Default is \code{TRUE}.}
+  \item{type.measure}{loss function to use for cross-validation. The default is \code{type.measure = "mse"}. The other two options are \code{type.measure = "deviance"}, the Tobit deviance, and \code{type.measure = "mae"}, the mean absolute error.}
   \item{...}{additional arguments for \code{tobitnet}}
 }
 
@@ -26,7 +28,8 @@ cv.tobitnet(x, y, c = 0, lambda1 = NULL, nfolds = 10, early.stop = TRUE, ...)
  \item{lambda1}{user-provided or automatically generated \code{lambda1} path}
  \item{lambda2}{user-provided \code{lambda2} value}
  \item{lambda1.min}{the value of \code{lambda1} that gives the minimum \code{cvm}}
- \item{lambda1.1se}{the largest value of \code{lambda1} such that \code{cvm} is within 1 standard error of the minimum.}
+ \item{lambda1.1se}{the largest value of \code{lambda1} such that \code{cvm} is within 1 standard error of the minimum}
+ \item{type.measure}{user-provided \code{type.measure} argument}
 }
 
 \details{

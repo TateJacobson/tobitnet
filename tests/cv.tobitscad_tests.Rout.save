@@ -30,7 +30,7 @@ Type 'q()' to quit R.
 > tscv1 = cv.tobitscad(x, y)
 > class(tscv1) == "cv.tobitscad"
 [1] TRUE
-> length(tscv1) == 6
+> length(tscv1) == 7
 [1] TRUE
 > 
 > is.numeric(tscv1$cvm)
@@ -79,7 +79,7 @@ Type 'q()' to quit R.
 > tscv1 = cv.tobitscad(x.df, y)
 > class(tscv1) == "cv.tobitscad"
 [1] TRUE
-> length(tscv1) == 6
+> length(tscv1) == 7
 [1] TRUE
 > 
 > is.numeric(tscv1$cvm)
@@ -127,7 +127,91 @@ Type 'q()' to quit R.
 > tscv1 = cv.tobitscad(x,y, lambda = c(0.1, 0.2))
 > class(tscv1) == "cv.tobitscad"
 [1] TRUE
-> length(tscv1) == 6
+> length(tscv1) == 7
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tscv1$lambda,c(0.1, 0.2))
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works with type.measure = "deviance"
+> tscv1 = cv.tobitscad(x,y, lambda = c(0.1, 0.2), type.measure = "deviance")
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 7
+[1] TRUE
+> 
+> is.numeric(tscv1$cvm)
+[1] TRUE
+> all(is.finite(tscv1$cvm))
+[1] TRUE
+> length(tscv1$cvm) == 2
+[1] TRUE
+> 
+> is.numeric(tscv1$cvsd)
+[1] TRUE
+> all(is.finite(tscv1$cvsd))
+[1] TRUE
+> length(tscv1$cvsd) == 2
+[1] TRUE
+> 
+> all.equal(tscv1$lambda,c(0.1, 0.2))
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.min)
+[1] TRUE
+> is.finite(tscv1$lambda.min)
+[1] TRUE
+> tscv1$lambda.min > 0
+[1] TRUE
+> length(tscv1$lambda.min) == 1
+[1] TRUE
+> 
+> is.numeric(tscv1$lambda.1se)
+[1] TRUE
+> is.finite(tscv1$lambda.1se)
+[1] TRUE
+> tscv1$lambda.1se > 0
+[1] TRUE
+> length(tscv1$lambda.1se) == 1
+[1] TRUE
+> 
+> #Works with type.measure = "mae"
+> tscv1 = cv.tobitscad(x,y, lambda = c(0.1, 0.2), type.measure = "mae")
+> class(tscv1) == "cv.tobitscad"
+[1] TRUE
+> length(tscv1) == 7
 [1] TRUE
 > 
 > is.numeric(tscv1$cvm)
@@ -171,7 +255,7 @@ Type 'q()' to quit R.
 > tscv1 = cv.tobitscad(x, y, c = 3, lambda = c(0.1, 0.2), nfolds = 5)
 > class(tscv1) == "cv.tobitscad"
 [1] TRUE
-> length(tscv1) == 6
+> length(tscv1) == 7
 [1] TRUE
 > 
 > is.numeric(tscv1$cvm)
@@ -213,7 +297,7 @@ Type 'q()' to quit R.
 > tscv1 = cv.tobitscad(cbind(c(rep(1, n-1) ,0), x), y, c = 3, lambda = c(0.1, 0.2), nfolds = 5)
 > class(tscv1) == "cv.tobitscad"
 [1] TRUE
-> length(tscv1) == 6
+> length(tscv1) == 7
 [1] TRUE
 > 
 > is.numeric(tscv1$cvm)
@@ -253,4 +337,4 @@ Type 'q()' to quit R.
 > 
 > proc.time()
    user  system elapsed 
-  4.622   0.081   4.886 
+  5.144   0.001   5.378 

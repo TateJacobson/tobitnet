@@ -9,6 +9,7 @@ tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.factor 
     
     n = nrow(x)
     nvars = ncol(x)
+    varnames = colnames(x)
     
     #x is numeric, a matrix, and has finite entries
     if( any( c(is.null(nvars), nvars <= 1) ) ) stop("x must be a matrix with 2 or more columns")
@@ -60,8 +61,9 @@ tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.factor 
         
         for(l in 1:nlambda){
             l1 = lambda_path[l]
-            pfs = dscad(abs(delta[,l]), lambda = l1, a = a)/l1 #pass to tobitnet_innerC so pf1 can vary with lambda
+            pfs = dscad(abs(delta[,l]), lambda = l1, a = a)/l1 
             
+            #pass to tobitnet_innerC so pf1 can vary with lambda
             tn = tobitnet_innerC(xin = x, yin = y, cin = c, lambda1 = l1, lambda2 = 0, pf1 = pfs, pf2 = rep(1, p),
                                  delta_0_init = delta_0_init, delta_init = delta_init, gamma_init = gamma_init,
                                  eps = eps, standardize = standardize, maxit = maxit)
@@ -91,6 +93,7 @@ tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.factor 
     #Put in rows of 0s for betas corresponding to the constant columns
     beta_final = matrix(0, nrow = nvars, ncol = nlambda)
     beta_final[!constant_cols, ] = beta_mat
+    rownames(beta_final) = varnames
     
     return(structure( list(
         call = this.call,
@@ -140,7 +143,8 @@ predict.tobitscad = function(object, newx, lambda = NULL, type = c("censored", "
 }
 
 cv.tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.factor = ifelse(n/2 < nvars, 0.1, 0.05), 
-                        lambda = NULL, nfolds = 10, early.stop = TRUE, ...){
+                        lambda = NULL, nfolds = 10, early.stop = TRUE, type.measure = c("mse", "deviance", "mae"), ...){
+    type.measure = match.arg(type.measure)
     this.call = match.call()
     n = nrow(x)
     nvars = ncol(x)
@@ -185,18 +189,28 @@ cv.tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.fact
             fold_z = unfolded_entries_z
         }
         foldlist[[i]] = c(fold_nz, fold_z)
+        fold_size = length(foldlist[[i]])
         
         tscad = tobitscad(x = x[-foldlist[[i]], ], y = y[ -foldlist[[i]] ], c = c, a = a, iter = iter, lambda = lambda, early.stop = F, ...)
         
-        #Predict and test
-        preds = predict(tscad, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
-        
-        r2 = (matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)^2
-        err_mat[i,] = apply(r2, 2, mean)
+        if(type.measure == "mse"){
+            preds = predict(tscad, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
+            r2 = (matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)^2
+            err_mat[i,] = colMeans(r2)
+        } else if(type.measure == "mae"){
+            preds = predict(tscad, newx = x[foldlist[[i]],], type = "censored") #n x nlambda
+            r_abs = abs(matrix(y[ foldlist[[i]] ], nrow = length(foldlist[[i]]), ncol = nlambda) - preds)
+            err_mat[i,] = colMeans(r_abs)
+        } else if(type.measure == "deviance"){
+            delta_pred = tscad$beta/rep(tscad$sigma, each = nrow(tscad$beta))
+            r_temp = as.matrix(x[ foldlist[[i]], ])%*%delta_pred + matrix( rep((tscad$b0 - c)/tscad$sigma, each = fold_size), nrow = fold_size, ncol = length(tscad$sigma))
+            err_mat[i,] = vapply(1:ncol(r_temp), function(j) -2*sum(logL1(y = y[ foldlist[[i]] ]-c, d = (y[ foldlist[[i]] ] > c), r = r_temp[,j], gamma = 1/tscad$sigma[j])), numeric(1) ) 
+        }
     }
     
-    cvm = apply(err_mat, 2, mean)
-    cvsd = apply(err_mat, 2, sd)/sqrt(nfolds)
+    cvm = colMeans(err_mat) 
+    cvvar = colMeans(err_mat*err_mat) - cvm^2 
+    cvsd = sqrt(cvvar/nfolds)
     lambda.min = lambda[which.min(cvm)]
     lambda.1se = max(lambda[ cvm < min(cvm) + cvsd[which.min(cvm)] ])
     
@@ -206,13 +220,17 @@ cv.tobitscad = function(x, y, c = 0, a = 3, iter = 3, nlambda = 100, lambda.fact
         cvsd = cvsd,
         lambda = lambda,
         lambda.min = lambda.min,
-        lambda.1se = lambda.1se
+        lambda.1se = lambda.1se,
+        type.measure = type.measure
     ), class = "cv.tobitscad"))
 }
 
 plot.cv.tobitscad = function(x, ...){
+    if(x$type.measure == "mse"){ ylabel = "Mean-Squared Error" }
+    else if(x$type.measure == "mae"){ ylabel = "Mean Absolute Error" }
+    else if(x$type.measure == "deviance"){ ylabel = "Deviance" }
     plot(x = log(x$lambda), y = x$cvm, pch = 21, col = "red", bg = "red",
-         xlab = expression( log(lambda [1]) ), ylab = "Mean-Squared Error", ...)
+         xlab = expression( log(lambda [1]) ), ylab = ylabel, ...)
     arrows(log(x$lambda), x$cvm-x$cvsd, log(x$lambda), x$cvm+x$cvsd, 
            length=0.05, angle=90, code=3, col = "gray")
     abline(v = log(x$lambda.min), lty = "dotted")
